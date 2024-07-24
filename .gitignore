@@ -19,6 +19,6 @@
 # Ignore all local history of files
 .history
 .ionide
-.vscode
+..vscode
 sh
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode
