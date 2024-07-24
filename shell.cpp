@@ -6,13 +6,14 @@ void process_command(std::string command) {
     // Se for comando interno...
     if (command == "exit")
         exit(0);
+    if (command == "pwd"){
+        char buffer[1024];
+        getcwd(buffer ,1024);
+    }
+    if (command == "cd"){
+        
+    }
 
-    // Se for comando externo
-
-    // * necessário verificar se é para ser executado em background
-    /*  Se for caminho relativo, procurar o comando na lista de diretórios
-        Se for absoluto verifica se comando existe
-    */
     std::string absolute_path = "/bin/" + command; 
     if (access(absolute_path.c_str(), F_OK) == 0) { // Arquivo existe no diretório
         if (access(absolute_path.c_str(), X_OK) == 0) { // Arquivo é executável
