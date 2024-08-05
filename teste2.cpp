@@ -1,33 +1,15 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <cstring>
 #include <vector>
+#include <cstring>
+
+std::string PATH = "./";
 
 void process_command(std::string command) {
-    // Se for comando interno...
-    if (command == "exit")
-        exit(0);
-
-    if (command == "pwd") {
-        char buffer[1024];
-        getcwd(buffer, 1024);
-        std::cout << buffer << std::endl;
-        return;
-    }
-
-    if (command.substr(0, 2) == "cd") {
-        std::string path = command.substr(3);
-        if (chdir(path.c_str()) != 0) {
-            std::cout << "cd: no such file or directory: " << path << std::endl;
-        }
-        return;
-    }
-
     std::vector<char*> args;
     char *cstr = new char[command.length() + 1];
     std::strcpy(cstr, command.c_str());
-    
     char *token = std::strtok(cstr, " ");
     while (token != nullptr) {
         args.push_back(token);
@@ -35,7 +17,56 @@ void process_command(std::string command) {
     }
     args.push_back(nullptr);
 
-    std::string absolute_path = "./" + std::string(args[0]); 
+    if (args.empty()) {
+        delete[] cstr;
+        return;
+    }
+
+    // Comandos internos
+    if (std::string(args[0]) == "exit") {
+        delete[] cstr;
+        exit(0);
+    }
+
+    if (std::string(args[0]) == "pwd") {
+        char buffer[1024];
+        getcwd(buffer, 1024);
+        std::cout << buffer << std::endl;
+        delete[] cstr;
+        return;
+    }
+
+    if (std::string(args[0]) == "cd") {
+        if (args[1] != nullptr) {
+            if (chdir(args[1]) != 0) {
+                std::cout << "cd: no such file or directory: " << args[1] << std::endl;
+            }
+        } else {
+            std::cout << "cd: missing argument" << std::endl;
+        }
+        delete[] cstr;
+        return;
+    }
+
+    if (std::string(args[0]) == "PATH") {
+        if (args[1] != nullptr) {
+            PATH = args[1];
+        } else {
+            std::cerr << "PATH: missing argument" << std::endl;
+        }
+        delete[] cstr;
+        return;
+    }
+
+    if (std::string(args[0]) == "history") {
+        for (size_t i = 0; i < command_history.size(); ++i) {
+            std::cout << i + 1 << ": " << command_history[i] << std::endl;
+        }
+        delete[] cstr;
+        return;
+    }
+
+    std::string absolute_path = PATH + std::string(args[0]); 
     if (access(absolute_path.c_str(), F_OK) == 0) { // Arquivo existe no diretório
         if (access(absolute_path.c_str(), X_OK) == 0) { // Arquivo é executável
             pid_t pid = fork();
